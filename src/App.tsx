@@ -1,23 +1,25 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { useState } from 'react';
 import './App.css';
+import { ethers } from "ethers"
+
+declare var window: any
 
 function App() {
+  const [isConnected, setIsConnected] = useState(false)
+
+  const connectWallet = async () => {
+    const provider = new ethers.providers.Web3Provider(window.ethereum)
+    await provider.send("eth_requestAccounts", []);
+    setIsConnected(true)
+  }
+
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+        {isConnected ? <div></div> : (
+            <button className="Connect-button" type="button" onClick={() => connectWallet()}>Connect</button>
+          ) 
+        }
       </header>
     </div>
   );
