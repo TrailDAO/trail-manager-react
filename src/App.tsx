@@ -52,9 +52,6 @@ function App() {
   }, [authToken])
 
   const deploy = async (id: string) => {
-    // get contract bytecode and construct transaction to deploy
-    // create deployment for compile
-
     const bytecode = await axios.get(`http://localhost:3000/compile/${id}/bytecode`, {
       headers: {
         'Authorization': `Bearer ${authToken}`
@@ -70,24 +67,29 @@ function App() {
     const provider = new ethers.providers.Web3Provider(window.ethereum)
     const signer = provider.getSigner()
 
-
     const factory = new ethers.ContractFactory(abi.data, bytecode.data, signer)
     const contract = await factory.deploy()
 
-    // The address the Contract WILL have once mined
-    // See: https://ropsten.etherscan.io/address/0x2bd9aaa2953f988153c8629926d22a6a5f69b14e
-    console.log(contract.address)
-    // "0x2bD9aAa2953F988153c8629926D22A6a5F69b14E"
+    console.log(`Contract address ${contract.address}`)
+    console.log(`https://rinkeby.etherscan.io/address/${contract.address}`)
 
-    // The transaction that was sent to the network to deploy the Contract
-    // See: https://ropsten.etherscan.io/tx/0x159b76843662a15bd67e482dcfbee55e8e44efad26c5a614245e12a00d4b1a51
-    console.log(contract.deployTransaction.hash)
-    // "0x159b76843662a15bd67e482dcfbee55e8e44efad26c5a614245e12a00d4b1a51"
+    console.log(`Transaction hash ${contract.deployTransaction.hash}`)
+    console.log(`https://rinkeby.etherscan.io/tx/${contract.deployTransaction.hash}`)
 
     // The contract is NOT deployed yet; we must wait until it is mined
     await contract.deployed()
+    console.log('Deployed')
 
     // Hit api and add deployment information, set status to deployed
+    await axios.post(`http://localhost:3000/compile/${id}/deploy`, {
+      transactionHash: contract.deployTransaction.hash,
+      contractAddress: contract.address,
+      chainId: provider.network.chainId,
+    }, {
+      headers: {
+        'Authorization': `Bearer ${authToken}`
+      }
+    })
   }
 
   const showDeployButton = (id: string) => {
